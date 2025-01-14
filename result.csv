@@ -1,0 +1,2 @@
+pnl,bookSize,longCount,shortCount,turnover,returns,drawdown,margin,sharpe,fitness,startDate,riskNeutralized,alpha_id,alpha
+-17208196,20000000,1447,1487,0.6618,-0.1662,1.7253,-0.000502,-1.69,-0.85,2012-07-15,"{'pnl': -3449388, 'bookSize': 20000000, 'longCount': 1447, 'shortCount': 1487, 'turnover': 0.6618, 'returns': -0.0333, 'drawdown': 0.3502, 'margin': -0.000101, 'fitness': -0.61, 'sharpe': -2.74}",pjG8M2x,rank(returns/(1+low))

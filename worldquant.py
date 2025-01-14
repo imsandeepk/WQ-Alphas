@@ -8,7 +8,7 @@ sys.path.append('alpha_creation_engine-main')
 import ace_lib as ace
 import helpful_functions as hf
 
-sys.path.append('/Users/sandeep/DOCS/Worldquant/')
+sys.path.append('/home/ubuntu/WQ-Alphas/')
 import pandas as pd
 import requests
 import plotly.express as px
@@ -53,15 +53,14 @@ def read_datasets(path):
     return datasets_df
 
 def get_dataset(session,df):
-    top_alphas_df = df.sort_values(by='alphaCount',ascending=False).head(2)["id"]
-    top_alphas_df_id = list(top_alphas_df)[0]
+    top_alphas_df = df.sort_values(by='alphaCount',ascending=False)["id"]
+    top_alphas_df_id = list(top_alphas_df)[4]
 
-    print("Catrgory:",top_alphas_df_id)
+    print("Category:",top_alphas_df_id)
 
     print("#############################################################################################################")
 
     datafields_df = hf.get_datafields(session, dataset_id=top_alphas_df_id) # doenload all fields of dataset news92
-    datafields_df = datafields_df.sort_values(by='alphaCount',ascending=False)
     return datafields_df
 # Use the function to get the session
 
@@ -72,7 +71,7 @@ def generate_alphas_list(df):
         for j in df["id"]:
             if(i==j):
                 continue
-            expression = f"rank({i}/(1+{j}))"
+            expression = f"zscore({i}/(1+{j}))"
             expression_list.append(expression)
 
     alpha_list = [ace.generate_alpha(x, region= "GLB", universe = "TOP3000",truncation= 0.1,neutralization='INDUSTRY', decay=8) for x in expression_list]
@@ -82,11 +81,12 @@ import pandas as pd
 
 def simulate(session, alpha_list):
     print("Simulating the alphas...")
+    print("Alpha list size:", len(alpha_list))
     data_to_save = []  # Use a list to collect rows
 
     for outer_idx in range(0, len(alpha_list), 10):
         # Simulate a batch of alphas
-        result = ace.simulate_alpha_list_multi(session, alpha_list[outer_idx:outer_idx+10])
+        result = ace.simulate_alpha_list_multi(session, alpha_list[outer_idx:outer_idx + 10])
         print("Getting the results...")
 
         # Extract results where "is_stats" is not None
@@ -114,16 +114,19 @@ def simulate(session, alpha_list):
                 sharpe_value = sharpe_value.iloc[0]
 
             if sharpe_value > 1 or sharpe_value < -1:
-                # Flatten the result data for saving
-                row = {**result_df[inner_idx]}  # Flatten dictionary if nested
+                # Flatten and clean the result data for saving
+                row = {
+                    key: value.iloc[0] if isinstance(value, pd.Series) else value
+                    for key, value in result_df[inner_idx].items()
+                }
                 row["alpha"] = alphas_simulated[inner_idx]["regular"]
                 data_to_save.append(row)
 
     # Convert collected data to a DataFrame and save to CSV
+    print("#############################################################################################################")
+    print("Saving the results...")
     df_save = pd.DataFrame(data_to_save)
-    df_save.to_csv("result.csv", index=False)
-
-
+    df_save.to_csv("result_zscore_index4.csv", index=False)
 
 
 
